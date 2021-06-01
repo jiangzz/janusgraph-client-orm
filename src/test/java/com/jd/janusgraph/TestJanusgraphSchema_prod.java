@@ -235,6 +235,6 @@ public class TestJanusgraphSchema_prod {
 
     @After
     public void after(){
-        janusGraph.close();
+        //janusGraph.close();
     }
 }

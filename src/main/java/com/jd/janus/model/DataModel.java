@@ -1,14 +1,17 @@
 package com.jd.janus.model;
 
+import com.jd.janus.annotation.Category;
 import com.jd.janus.annotation.DataType;
 import com.jd.janus.annotation.Graph;
 import com.jd.janus.annotation.Property;
 import lombok.Data;
 import org.janusgraph.core.Cardinality;
 
-@Graph(label = "DATA_MODEL")
+import java.io.Serializable;
+
+@Graph(label = "DATA_MODEL",category = Category.VERTEX)
 @Data
-public class DataModel implements VertexModel {
+public class DataModel implements Serializable {
    @Property(name = "id",dataType = DataType.STRING,cardinality = Cardinality.SINGLE)
    private String id;
     @Property(name = "alias",dataType = DataType.STRING,cardinality = Cardinality.SINGLE)

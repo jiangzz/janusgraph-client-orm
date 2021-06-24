@@ -8,11 +8,18 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="janusgraph-client-atlas" />
+        <module name="atlas" />
+        <module name="clear-atlas-columns" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="clear-atlas-lineage" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="atlas" options="-parameters" />
+      <module name="clear-atlas-columns" options="-parameters" />
       <module name="janusgraph-client-atlas" options="-parameters" />
     </option>
   </component>

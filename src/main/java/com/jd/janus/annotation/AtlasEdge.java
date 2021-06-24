@@ -5,6 +5,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-public enum  Category {
-    VERTEX,EDGE
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface AtlasEdge {
+    String primaryKey() default "id";
+    String label();
+    Class from();
+    Class to();
 }

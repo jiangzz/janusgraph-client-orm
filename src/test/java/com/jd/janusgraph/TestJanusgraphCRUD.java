@@ -26,7 +26,7 @@ public class TestJanusgraphCRUD {
         JanusGraphFactory.Builder builder = JanusGraphFactory.build()
                 .set("storage.hostname", "CentOS")
                 .set("storage.backend", "hbase")
-                .set("storage.hbase.table", "janus")
+                .set("storage.hbase.table", "apache_atlas_janus")
                 .set("index.search.backend", "elasticsearch")
                 .set("schema.constraints",true)
                 .set("schema.default","none")

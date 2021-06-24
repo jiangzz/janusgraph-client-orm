@@ -3,6 +3,7 @@ package com.jd.janusgraph;
 import org.apache.tinkerpop.gremlin.process.traversal.Order;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
@@ -19,6 +20,7 @@ import org.junit.Test;
 
 import java.io.*;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +38,7 @@ public class TestJanusgraphSchema_prod {
                 .set("index.search.backend", "elasticsearch")
                 .set("index.search.hostname", "CentOS")
                 .set("index.search.elasticsearch.http.auth.type", "custom")
-                .set("index.search.elasticsearch.http.auth.custom.authenticator-class", "com.jd.janusgraph.JESRestClientAuthenticator")
+                .set("index.search.elasticsearch.http.auth.custom.authenticator-class", "com.jd.janus.auth.JESRestClientAuthenticator")
                 .set("index.search.elasticsearch.http.auth.custom.authenticator-args", "c9f03dff789318d91b35ef0fc26fed33,galaxy-jtlas-app");
 
         janusGraph = builder.open();
@@ -57,12 +59,14 @@ public class TestJanusgraphSchema_prod {
         //创建边
         EdgeLabel data_model_2_job = mgmt.makeEdgeLabel("DATA_MODEL_2_JOB").multiplicity(Multiplicity.MULTI).make();
         EdgeLabel job_2_data_model = mgmt.makeEdgeLabel("JOB_2_DATA_MODEL").multiplicity(Multiplicity.MULTI).make();
-        EdgeLabel data_model_2_quota = mgmt.makeEdgeLabel("DATA_MODEL_2_QUOTA").multiplicity(Multiplicity.ONE2MANY).make();
+        EdgeLabel data_model_2_quota = mgmt.makeEdgeLabel("DATA_MODEL_2_QUOTA").multiplicity(Multiplicity.MULTI).make();
+
         EdgeLabel quota_2_quota = mgmt.makeEdgeLabel("QUOTA_2_QUOTA").multiplicity(Multiplicity.MULTI).make();
-        EdgeLabel topic_2_quota = mgmt.makeEdgeLabel("TOPIC_2_QUOTA").multiplicity(Multiplicity.ONE2MANY).make();
+
+        EdgeLabel topic_2_quota = mgmt.makeEdgeLabel("TOPIC_2_QUOTA").multiplicity(Multiplicity.MULTI).make();
         EdgeLabel topic_2_job = mgmt.makeEdgeLabel("TOPIC_2_JOB").multiplicity(Multiplicity.MULTI).make();
         EdgeLabel job_2_topic = mgmt.makeEdgeLabel("JOB_2_TOPIC").multiplicity(Multiplicity.MULTI).make();
-        EdgeLabel topic_2_quota_sys = mgmt.makeEdgeLabel("TOPIC_2_QUOTA_SYS").multiplicity(Multiplicity.ONE2MANY).make();
+        EdgeLabel topic_2_quota_sys = mgmt.makeEdgeLabel("TOPIC_2_QUOTA_SYS").multiplicity(Multiplicity.MULTI).make();
 
 
         PropertyKey id = mgmt.makePropertyKey("id").dataType(String.class).cardinality(Cardinality.SINGLE).make();
@@ -183,7 +187,6 @@ public class TestJanusgraphSchema_prod {
     @Test
 
     public void testInserDataModelData() throws Exception {
-
         FileInputStream fis=new FileInputStream("E:\\IdeaProject\\janusgraph-client-atlas\\src\\main\\resources\\数据模型顶点.csv");
         InputStreamReader inputStreamReader = new InputStreamReader(fis,"utf-8");
         BufferedReader br = new BufferedReader(inputStreamReader);
@@ -202,39 +205,68 @@ public class TestJanusgraphSchema_prod {
         janusGraph.tx().commit();
 
     }
-    @Test
-    public void testQueryData() throws Exception {
 
+    @Test
+    public void testQueryData2() throws Exception {
         GraphTraversalSource traversal = janusGraph.traversal();
-        Long cluster = traversal.V().has("cluster", "5k").count().next();
-        Vertex vertex = traversal.V().has("_id", "tape_sdm.dws_brs_jr_flow_sum_i_d@5k").next();
-        for (String key : vertex.keys()) {
-            System.out.println(key+"\t"+vertex.property(key).value());
+        List<Vertex> vertexs = traversal.V().or(__.has("name", "t_user"),__.has("name","t_order")).toList();
+        for (Vertex vertex : vertexs) {
+            System.out.println("name"+"\t"+vertex.property("name").value());
         }
+
+        traversal.tx().commit();
     }
     @Test
-    public void testDropData() throws Exception {
+    public void dropAll() throws Exception {
         GraphTraversalSource traversal = janusGraph.traversal();
-        Long count = traversal.V().has("cluster", "5k").count().next();
-        while(count!=0){
-            List<Vertex> cluster = traversal.V().has("cluster", "5k").limit(1000).toList();
-            for (Vertex vertex : cluster) {
-                traversal.V(vertex).drop().iterate();
-            }
-
-            count = traversal.V().has("cluster", "5k").count().next();
-        }
+        traversal.V().drop().iterate();
         traversal.tx().commit();
     }
     @Test
     public void testQueryDataCount() throws Exception {
         GraphTraversalSource traversal = janusGraph.traversal();
-        Long count = traversal.V().has("cluster", "5k").count().next();
+        Long count = traversal.V().count().next();
         System.out.println(count);
+    }
+    @Test
+    public void testQueryDataRelations() throws Exception {
+        GraphTraversalSource g = janusGraph.traversal();
+        long l = g.E().hasLabel("DATA_MODEL_2_JOB").count().next().longValue();
+        System.out.println(l);
+        g.tx().commit();
+    }
+    @Test
+    public void testDeleteEdge() throws Exception {
+        GraphTraversalSource g = janusGraph.traversal();
+        g.E().hasLabel("DATA_MODEL_2_JOB").has("id","jiangzz.t_user@5k->jiangzz.JCW_ODM_CF_YQGQ_COUPON_RECORD_I_D@5k@DATA_MODEL_2_JOB")
+                .drop().iterate();
+        g.tx().commit();
+    }
+
+    @Test
+    public void testQueryDataRelations2() throws Exception {
+        GraphTraversalSource g = janusGraph.traversal();
+        List<Edge> edges = g.E().hasLabel("DATA_MODEL_2_JOB").toList();
+        for (Edge edge : edges) {
+            System.out.println("=======================");
+            for (String key : edge.keys()) {
+                System.out.println(key+"\t"+edge.property(key).value());
+            }
+            Iterator<Vertex> vertexIterator = edge.bothVertices();
+            while (vertexIterator.hasNext()) {
+                System.out.println();
+                Vertex vertex = vertexIterator.next();
+                for (String key : vertex.keys()) {
+                    System.out.println(key+"\t"+vertex.properties(key).next().value());
+                }
+            }
+
+        }
+        g.tx().commit();
     }
 
     @After
     public void after(){
-        //janusGraph.close();
+        janusGraph.close();
     }
 }

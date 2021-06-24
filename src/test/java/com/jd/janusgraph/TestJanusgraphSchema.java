@@ -36,7 +36,7 @@ public class TestJanusgraphSchema {
                 .set("index.search.backend", "elasticsearch")
                 .set("index.search.hostname", "CentOS")
                 .set("index.search.elasticsearch.http.auth.type", "custom")
-                .set("index.search.elasticsearch.http.auth.custom.authenticator-class", "com.jd.janusgraph.JESRestClientAuthenticator")
+                .set("index.search.elasticsearch.http.auth.custom.authenticator-class", "com.jd.janus.auth.JESRestClientAuthenticator")
                 .set("index.search.elasticsearch.http.auth.custom.authenticator-args", "c9f03dff789318d91b35ef0fc26fed33,galaxy-jtlas-app");
         janusGraph = builder.open();
     }
